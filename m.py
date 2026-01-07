@@ -370,6 +370,7 @@ def show_command_logs(message):
         response = "You Are Not Authorized To Use This Command 😡 shinoj_zakky."
 
     bot.reply_to(message, response)
+    
 @bot.message_handler(commands=['stopbgmi'])
 def stop_bm(message):
     global bgmi_running
