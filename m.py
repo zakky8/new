@@ -373,17 +373,17 @@ def show_command_logs(message):
     bot.reply_to(message, response)
 @bot.message_handler(commands=['stopbgmi'])
 def stop_bm(message):
-    global bm_running
+    global bgmi_running
 
     if message.from_user.id not in admin_id:
         bot.reply_to(message, "🚫 Unauthorized Access!")
         return
 
-    if not bm_running:
+    if not bgmi_running:
         bot.reply_to(message, "ℹ️ bgmi is not running.")
         return
 
-    bm_running = False
+    bgmi_running = False
     bot.reply_to(message, "🛑 bgmi stop command received.")
 
 @bot.message_handler(commands=['help'])
