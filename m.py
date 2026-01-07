@@ -3,15 +3,13 @@ import telebot
 import subprocess
 import datetime
 
-LOCK_FILE = "/tmp/telegram_bot.lock"
+import atexit
 
-if os.path.exists(LOCK_FILE):
-    print("❌ Bot already running. Exiting.")
-    exit(1)
+def cleanup_lock():
+    if os.path.exists(LOCK_FILE):
+        os.remove(LOCK_FILE)
 
-with open(LOCK_FILE, "w") as f:
-    f.write(str(os.getpid()))
-
+atexit.register(cleanup_lock)
 # ===== ADMIN CONFIG =====
 admin_id = [1099673604]   # <-- PUT YOUR TELEGRAM USER ID HERE (INT, NO QUOTES)
 
