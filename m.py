@@ -12,9 +12,11 @@ if os.path.exists(LOCK_FILE):
 with open(LOCK_FILE, "w") as f:
     f.write(str(os.getpid()))
 
-# ===== GLOBAL STATE =====
-DEV_MODE = False
+# ===== ADMIN CONFIG =====
+admin_id = [1099673604]   # <-- PUT YOUR TELEGRAM USER ID HERE (INT, NO QUOTES)
 
+# ===== GLOBAL STATE =====
+DEV_MODE = False      # True for GitHub, False for VPS
 bgmi_running = False  # tracks if bgmi is running
 bgmi_process = None   # stores subprocess handle
 bgmi_cooldown = {}    # user_id -> last command time
