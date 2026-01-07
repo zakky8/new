@@ -4,6 +4,9 @@ import subprocess
 import datetime
 import os
 
+bgmi_running = False   # ✅ DEFINED HERE (GLOBAL)
+bgmi_process = None    # (needed if you use /stopbgmi)
+
 # insert your Telegram bot token here
 bot = telebot.TeleBot('7844122825:AAGdzw7l_GZ1IL5QAVuUnQNsaGftq-uzYKI')
 
