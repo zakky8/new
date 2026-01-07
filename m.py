@@ -1,8 +1,11 @@
-admin_id = [1099673604]   # ✅ integer, no quotes
-import telebot
-import subprocess
-import datetime
-import os
+LOCK_FILE = "/tmp/telegram_bot.lock"
+
+if os.path.exists(LOCK_FILE):
+    print("❌ Bot already running. Exiting.")
+    exit(1)
+
+with open(LOCK_FILE, "w") as f:
+    f.write(str(os.getpid()))
 
 # ===== GLOBAL STATE =====
 DEV_MODE = False
@@ -485,10 +488,10 @@ def broadcast_message(message):
     bot.reply_to(message, response)
 
 
-
-#bot.polling()
-while True:
+if __name__ == "__main__":
     try:
-        bot.polling(none_stop=True)
+        bot.polling(none_stop=True, interval=2, timeout=20)
+    except KeyboardInterrupt:
+        print("Bot stopped by user")
     except Exception as e:
-        print(e)
+        print("Bot crashed:", e)
