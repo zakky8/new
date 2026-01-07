@@ -1,3 +1,8 @@
+import os
+import telebot
+import subprocess
+import datetime
+
 LOCK_FILE = "/tmp/telegram_bot.lock"
 
 if os.path.exists(LOCK_FILE):
