@@ -1,3 +1,5 @@
+# Bot Restart Manager
+
 admin_id = [1099673604]  # your Telegram ID (int)
 import subprocess
 import time
@@ -19,6 +21,7 @@ def start_bot():
 async def notify_admin(message):
     """Send a notification message to the admin via Telegram."""
     try:
+        await bot.send_message(admin_id[0], message)
         logging.info("Admin notified: %s", message)
     except Exception as e:
         logging.error("Failed to send message to admin: %s", e)
